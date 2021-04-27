@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "preserveConstEnums": true,
+    "strictNullChecks": true,
+    "inlineSources": true,
+    "inlineSourceMap": true,
+    "sourceRoot": "/",
+    "target": "es2020",
+    "outDir": ".build",
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "lib": [
+      "es2019"
+    ],
+    "rootDir": "./src",
+    "resolveJsonModule": true,
+  },
+  "ts-node": {
+    "files": true
+  }
+}

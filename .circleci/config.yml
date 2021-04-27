@@ -1,0 +1,120 @@
+version: 2
+
+jobs:
+  build:
+    docker: &docker
+      - image: circleci/node:12.13.1
+    steps:
+      - checkout
+      - restore_cache: &restore_cache
+          key: npm-dependencies-{{ arch }}-{{ .Branch }}-{{ checksum "package-lock.json" }}
+      - run: &npm_install
+          name: Install NPM Packages
+          command: npm install --no-save
+      - save_cache:
+          key: npm-dependencies-{{ arch }}-{{ .Branch }}-{{ checksum "package-lock.json" }}
+          paths: [node_modules]
+      - run:
+          name: Run Unit Tests
+          command: npm run test:unit
+      - run:
+          name: Serverless Package
+          command: npm run package -- --stage $STAGE --branch $CIRCLE_BRANCH 
+      - persist_to_workspace:
+          root: .
+          paths: [.serverless]
+
+  deploy:
+    docker: *docker
+    steps:
+      - checkout
+      - restore_cache: *restore_cache
+      - run: *npm_install
+      - run: &setup_aws_credentials
+          name: Setup AWS credentials
+          command: |
+            mkdir -p ~/.aws
+            while read line; do eval echo $line; done < ./.aws_profiles > ~/.aws/credentials
+      - attach_workspace:
+          at: .
+      - store_artifacts:
+          path: .serverless
+      - run:
+          name: Deploy to AWS
+          command: >
+            npm run deploy --
+            --aws-profile default
+            --branch $CIRCLE_BRANCH
+            --force
+            --package .serverless
+            --stage $STAGE
+
+  integration_test:
+    docker: *docker
+    steps:
+      - checkout
+      - restore_cache: *restore_cache
+      - run: *npm_install
+      - run: *setup_aws_credentials
+      - run:
+          name: Run integration tests
+          command: npm run test:integration
+
+workflows:
+  version: 2
+  # Test build and deploy for all branches except main and release
+  dev_build_deploy:
+    jobs:
+      - build:
+          filters:
+            branches:
+              ignore:
+                - main
+                - /^release-.*/
+          context: circleci-context-tst
+      - deploy:
+          requires: [build]
+          context: circleci-context-tst
+      # - integration_test:
+      #     requires: [deploy]
+      #     context: circleci-context-tst
+
+  # Staging build and deploy for all branches that begin with release- or tags that begin with stg-
+  stg_build_deploy:
+    jobs:
+      - build:
+          context: circleci-context-stg
+          filters:
+            branches:
+              only:
+                - main
+                - /^stg-.*/
+            tags: { only: /^stg-.*/ }
+      - deploy:
+          context: circleci-context-stg
+          filters:
+            tags: { only: /^stg-.*/ }
+          requires: [build]
+      # - integration_test:
+      #     requires: [deploy]
+      #     context: circleci-context-stg
+
+  # Production build and deployment for tags that begin with release-
+  prd_build_approve_deploy:
+    jobs:
+      - build:
+          context: circleci-context-prd
+          filters:
+            branches: { ignore: /.*/ }
+            tags: { only: /^\d+\.\d+\.\d+$/ }
+      - approve:
+          context: circleci-context-prd
+          filters:
+            tags: { only: /^\d+\.\d+\.\d+$/ }
+          requires: [build]
+          type: approval
+      - deploy:
+          context: circleci-context-prd
+          filters:
+            tags: { only: /^\d+\.\d+\.\d+$/ }
+          requires: [approve]

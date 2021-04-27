@@ -1,0 +1,150 @@
+service: ts-micro-lambda
+
+plugins:
+  - serverless-webpack
+  - serverless-offline
+  - serverless-pseudo-parameters
+  - serverless-plugin-log-retention
+
+frameworkVersion: '2'
+variablesResolutionMode: 20210326
+useDotenv: true
+
+custom:
+  name: ${opt:service-name, env:SERVICE_NAME, 'ts-micro-lambda'}
+  defaultRegion: ap-southeast-2
+  stage: ${opt:stage, env:STAGE, 'tst'}
+  stagedName: ${self:custom.name}-${self:custom.stage}
+  basePath: ${opt:base-path, env:BASE_PATH, 'ts-micro-lambda'}
+  domainName: ${opt:prefix, ''}${self:custom.domainNameMap.${self:custom.stage}}
+  domainNameMap:
+    tst: control-api.test-your-domain.com
+    stg: control-api.staging-your-domain.com
+    prd: control-api.-your-domain.com
+  domain: ${opt:service-host, env:SERVICE_HOST, self:custom.domainName}
+  customDomain:
+    domainName: ${self:custom.domain}
+    basePath: ${self:custom.basePath}
+    stage: ${self:custom.stage}
+    createRoute53Record: true
+  region: ${opt:region, env:AWS_REGION, 'ap-southeast-2'}
+  # profile: ${opt:profile, env:AWS_PROFILE, self:custom.stage}
+  webpack:
+    includeModules:
+      forceExclude: [aws-sdk]
+    webpackConfig: 'webpack.config.js'
+    packager: 'npm'
+  logRetentionInDays: 60
+  functions:
+    # API lambda function
+    api: &api
+      handler: src/api-lambda.handler
+      tracing: true
+      events:
+        # Add additional API endpoints here
+        - http:
+            method: get
+            path: /{id}
+            private: true
+            request:
+              parameters:
+                paths:
+                  id: true
+                querystrings:
+                  message: false
+      environment:
+        # Set the parameter store values
+        SSM_API_URL: /${self:custom.stage}/api/api-url
+        SSM_API_KEY: /${self:custom.stage}/api/api-key
+    api-docs: &api-docs
+      handler: src/api-docs-lambda.handler
+      role: ApiDocsExecutionRole
+      events:
+        - http: GET /docs
+        - http: GET /docs/{proxy+}
+    tst:
+      api: *api
+      api-docs: *api-docs
+    stg:
+      api: *api
+      api-docs: *api-docs
+    prd:
+      api: *api
+      # We don't need to deploy docs to production
+
+package:
+  individually: true
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  region: ${self:custom.region}
+  stage: ${self:custom.stage}
+  # profile: ${self:custom.profile}
+  stackName: ${self:custom.stagedName}
+  lambdaHashingVersion: 20201221
+  timeout: 30
+  memorySize: 256
+  deploymentBucket:
+    blockPublicAccess: true
+  apiGateway:
+    apiKeys:
+      - ${self:custom.stagedName}-key
+  stackTags:
+    project : "video-delivery"
+    category : "cdn"
+    functionality : "manifest-monitoring"
+    gl : "672270"
+    opexcc : "5087"
+    region: "ap-southeast-2"
+    deployed-by: "tomas-dermisek"
+  iam:
+    role:
+      statements:
+        - Effect: 'Allow' # xray permissions (required)
+          Action:
+            - 'xray:PutTraceSegments'
+            - 'xray:PutTelemetryRecords'
+          Resource:
+            - '*'
+        - Effect: Allow
+          Action:
+            - ssm:GetParameter
+          Resource:
+            - Fn::Sub: 'arn:aws:ssm:#{AWS::Region}:#{AWS::AccountId}:parameter#{ApiKey}'
+            - Fn::Sub: 'arn:aws:ssm:#{AWS::Region}:#{AWS::AccountId}:parameter#{ApiUrl}'
+  environment:
+    SERVICE_HOST: ${self:custom.domain}
+    SERVICE_NAME: ${self:custom.name}
+    STAGE: ${self:custom.stage}
+
+functions: ${self:custom.functions.${self:custom.stage}}
+
+resources:
+  Parameters:
+    ApiKey:
+      Type: AWS::SSM::Parameter::Name
+      Default: /${self:custom.stage}/api/api-key
+    ApiUrl:
+      Type: AWS::SSM::Parameter::Name
+      Default: /${self:custom.stage}/api/api-url
+  Resources:
+    ApiGatewayRestApi:
+      Type: AWS::ApiGateway::RestApi
+      Properties:
+        Name: ${self:custom.stagedName}
+    # IAM execution role isolation for API docs lambda
+    ApiDocsExecutionRole:
+      Type: AWS::IAM::Role
+      Properties:
+        RoleName: ${self:custom.stagedName}-api-docs-${self:custom.region}-lambdaRole
+        AssumeRolePolicyDocument:
+          Version: '2008-10-17'
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service:
+                  - lambda.amazonaws.com
+              Action: sts:AssumeRole
+        ManagedPolicyArns:
+          - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
