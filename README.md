@@ -1,40 +1,44 @@
-# Manifest Validation Sensor
+# micro-lambda-ts
 
-This sensor fetches DASH & HLS manifests for channels 1 - 6 every two seconds in order to validate them once per minute using following criteria:
-* stalled manifests (if SHA hash of current manifests equals to the previous one)
-* short segments (iterates through all segmens in every manifest)
+This is a highly opinionated RESTful API microservice template for AWS Lambda written in Typescript.
 
-Errors and warnings are reported to the Monitoring API under "UBOC < Manifest Validation". Failed manifests are exported to S3 bucket for further analysis by data team.
+## Core technologies
+1. Serverless framework
+2. Serverless express app
+3. Serverless webpack
+4. Swagger API Documentation
+5. JSON API specs
+6. Dot ENV
 
-## Resources
+## Core infrastructure
+1. AWS Lambda
+2. AWS API Gateway
+3. AWS SSM Parameter Store
+4. AWS X-Ray
 
-* Lambda: {STAGED_NAME}-{ENV}-monitoring-scheduler (eg. manifest-monitoring-tst-monitoring-scheduler)
-* S3 Bucket: owned by the data team eg. hist-manifests-dev
+## Setup
+`npm install`
 
-## Local development
-
-### Setup
-1. `npm install`
-
-### Run
+## Run
 1. `npm start`
 
-Once deployed to AWS it can be observed by opening the CloudWatch log stream:
-* eg `/aws/lambda/manifest-monitoring-tst-monitoring-scheduler`
+## Test
+1. `npm run test` for lint + unit tests
+2. `npm run test:unit`  for unit tests only
 
-## Deployment
-CircleCI is configured to watch changes in the git repo: https://app.circleci.com/pipelines/github/optussport/manifest-validation-sensor
-* It will run the `dev build` for every commit to a branch other than main or a branch starting with `stg-`
-* It will run the `stg build` for every commit to the main branch or a branch starting with `stg-`
-* It will run the `prd build` for every commit tagged as `x.x.x`
-(for details see the circleci/config.yml)
+## Build
+`npm run build`
 
-### Build
-1. `npm run build`
+## Deploy
+`npm run deploy`
 
-### Deploy
-1. `npm run deploy`
+### Integration testing
+Configure your `.env` file with the deployed resources
+1. `API_KEY=<API Gateway Key>`
+2. `API_URL=<API Gateway Url>`
+3. `npm run test:integration`  for integration tests
 
-### Deploy from CLI
-If you want to deploy the project from your laptop to tst environment in AWS:
-1. `npm run deploy:tst` 
+## TODOs
+- [ ] Fix Swagger Doc
+- [ ] Fix Typescript linter errors and warnings
+- [ ] Improve documentation
