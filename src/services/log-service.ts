@@ -1,20 +1,24 @@
 /* istanbul ignore file */
 import uuidV4 from 'uuid/v4';
 import { HTTPError } from 'got/dist/source';
+import { NextFunction, Request, Response } from 'express';
 
 export default class LogService {
   private cid: string;
+
   private logLevels: Array<string>;
+
   private context: any;
+
   private logger: typeof console;
 
   constructor(
     cid: string = uuidV4(),
-    logLevels: Array<string> = [], 
+    logLevels: Array<string> = [],
     context: any = {},
     logger: typeof console = console,
   ) {
-    const levels = process.env.LOG_LEVELS ? process.env.LOG_LEVELS.split(',').map(x => x.toUpperCase()) : [];
+    const levels = process.env.LOG_LEVELS ? process.env.LOG_LEVELS.split(',').map((x) => x.toUpperCase()) : [];
 
     this.cid = cid;
     this.logLevels = logLevels.length ? logLevels : levels;
@@ -27,7 +31,7 @@ export default class LogService {
     this.logger = logger;
   }
 
-  log(level, message, ...data) {
+  log(level: string, message: string, ...data: Array<any>) {
     const log = {
       ...this.context,
       level,
@@ -37,36 +41,36 @@ export default class LogService {
     this.logger.log(JSON.stringify(log));
   }
 
-  verbose(message, ...data) {
+  verbose(message: string, ...data: Array<any>) {
     if (this.logLevels.includes('VERBOSE')) {
       this.log('verbose', message, ...data);
     }
   }
 
-  debug(message, ...data) {
+  debug(message: string, ...data: Array<any>) {
     if (this.logLevels.includes('DEBUG')) {
       this.log('debug', message, ...data);
     }
   }
 
-  info(message, ...data) {
+  info(message: string, ...data: Array<any>) {
     this.log('info', message, ...data);
   }
 
-  warn(message, ...data) {
+  warn(message: string, ...data: Array<any>) {
     this.log('warn', message, ...data);
   }
 
-  error(message, ...data) {
+  error(message: string, ...data: Array<any>) {
     this.log('error', message, ...data);
   }
 
-  fatal(message, ...data) {
+  fatal(message: string, ...data: Array<any>) {
     this.log('fatal', message, ...data);
   }
 
-  renderData(data) {
-    return data.map(entry => {
+  renderData(data: Array<any>): Array<any> {
+    return data.map((entry) => {
       if (entry instanceof Error) {
         let extras = {};
 
@@ -107,7 +111,7 @@ export default class LogService {
   }
 
   static middleware(header = 'x-correlation-id', query = 'cid') {
-    return (req, res, next) => {
+    return (req: Request, res: Response, next: NextFunction) => {
       const headerKey = header;
       const queryKey = query;
 
@@ -139,7 +143,7 @@ export default class LogService {
   }
 
   static errorMiddleware() {
-    return (error: Error, req, res, next) => {
+    return (error: Error, req: Request, res: Response, next: NextFunction) => {
       const { log = new LogService(req.cid) } = req;
 
       log.error('Request processing error', error, {
@@ -155,7 +159,7 @@ export default class LogService {
           errors: [
             {
               status: 400,
-              title: `Invalid JSON - ${error['messsage']}`,
+              title: `Invalid JSON - ${error['messsage']}`, // eslint-disable-line @typescript-eslint/dot-notation
             },
           ],
         });

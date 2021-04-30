@@ -90,14 +90,6 @@ provider:
   apiGateway:
     apiKeys:
       - ${self:custom.stagedName}-key
-  stackTags:
-    project : "video-delivery"
-    category : "cdn"
-    functionality : "manifest-monitoring"
-    gl : "672270"
-    opexcc : "5087"
-    region: "ap-southeast-2"
-    deployed-by: "tomas-dermisek"
   iam:
     role:
       statements:

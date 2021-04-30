@@ -1,6 +1,6 @@
 import express, { Request, Response } from 'express';
 import LogService from '../services/log-service';
-import HttpError, { jsonError as jsonErrorFn } from '../errors/http-error';
+import HttpError from '../errors/http-error';
 
 export default class SampleController {
   constructor(private log: LogService) {}

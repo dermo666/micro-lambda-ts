@@ -18,16 +18,16 @@ export default class Api {
       .use(HttpError.middleware());
   }
 
-  getExpress(): express.Application{
+  getExpress(): express.Application {
     return this.express;
   }
 
-  attachParameterStore() {
+  attachParameterStore(): Api {
     this.express.use(ParameterStoreService.middleware(Constants.parameters));
     return this;
   }
 
-  attachApi() {
+  attachApi(): Api {
     this.express
       // Remove the next line to disable CORS (internal services)
       .use(cors())
@@ -36,12 +36,12 @@ export default class Api {
     return this;
   }
 
-  attachErrorHandler() {
+  attachErrorHandler(): Api {
     this.express.use(LogService.errorMiddleware());
     return this;
   }
 
-  use(middleware: express.RequestHandler) {
+  use(middleware: express.RequestHandler): Api {
     this.express.use(middleware);
     return this;
   }

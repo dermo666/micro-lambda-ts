@@ -1,5 +1,6 @@
 /* istanbul ignore file */
 import { SSM } from 'aws-sdk';
+import { NextFunction, Request, Response } from 'express';
 
 const cache = {};
 
@@ -7,9 +8,10 @@ export default class ParameterStoreService {
   constructor(
     private parameters: Array<any>,
     private useCache = true,
-    private ssm = new SSM()) {}
+    private ssm = new SSM(),
+  ) {}
 
-  async load(parameters = this.parameters) {
+  async load(parameters = this.parameters): Promise<void> {
     if (!parameters) {
       throw new Error('Parameters is required');
     }
@@ -33,10 +35,10 @@ export default class ParameterStoreService {
   }
 
   static middleware(parameters: Array<any>, useCache = true) {
-    return (req, res, next) => new ParameterStoreService(parameters, useCache)
+    return (req: Request, res: Response, next: NextFunction) => new ParameterStoreService(parameters, useCache)
       .load()
       .then(() => next())
-      .catch(error => {
+      .catch((error) => {
         req.log.error('ParameterStoreService Error', error);
 
         res.status(500).json({

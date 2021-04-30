@@ -1,7 +1,8 @@
 /* istanbul ignore file */
 import { STATUS_CODES } from 'http';
+import { NextFunction, Request, Response } from 'express';
 
-export function jsonError(res, error: any = {}) {
+export function jsonError(res: Response, error: any = {}): void {
   const { name = '', message = STATUS_CODES[500] } = error;
   let status = 500;
   let errors: Array<{ status: number, title: string, meta?: Array<any> }> = [];
@@ -38,7 +39,7 @@ export function jsonError(res, error: any = {}) {
     case 'HttpValidationError':
       status = error.status;
       if (Array.isArray(error.details)) {
-        errors = error.details.map(detail => ({
+        errors = error.details.map((detail: any) => ({
           status,
           title: detail.message || detail.title,
           meta: detail.context || detail.meta,
@@ -58,7 +59,7 @@ export default class HttpError extends Error {
   constructor(
     message = STATUS_CODES[500],
     private status = 500,
-    private details = []
+    private details = [],
   ) {
     super(message);
     this.name = 'HttpError';
@@ -72,9 +73,9 @@ export default class HttpError extends Error {
   }
 
   static middleware() {
-    return (req, res, next) => {
+    return (req: Request, res: Response, next: NextFunction) => {
       if (!res.jsonError) {
-        res.jsonError = error => jsonError(res, error);
+        res.jsonError = (error) => jsonError(res, error);
       }
 
       next();

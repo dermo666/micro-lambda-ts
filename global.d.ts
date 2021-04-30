@@ -11,6 +11,7 @@ declare global {
     export interface Request {
       controller: SampleController;
       log: LogService;
+      cid: string;
     }
 
     export interface Response {
