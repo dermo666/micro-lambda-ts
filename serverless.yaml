@@ -5,6 +5,7 @@ plugins:
   - serverless-offline
   - serverless-pseudo-parameters
   - serverless-plugin-log-retention
+  - serverless-domain-manager
 
 frameworkVersion: '2'
 variablesResolutionMode: 20210326

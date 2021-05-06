@@ -34,11 +34,10 @@ This is a highly opinionated RESTful API microservice template for AWS Lambda wr
 
 ### Integration testing
 Configure your `.env` file with the deployed resources
-1. `API_KEY=<API Gateway Key>`
-2. `API_URL=<API Gateway Url>`
-3. `npm run test:integration`  for integration tests
+1. `npm run test:integration`  for integration tests
 
 ## TODOs
+- [ ] Improve the SSM handling - add automatic env injector 
 - [ ] Fix Swagger Doc
 - [ ] Fix Typescript linter errors and warnings
 - [ ] Improve documentation

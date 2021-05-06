@@ -35,7 +35,7 @@ export default class ParameterStoreService {
   }
 
   static middleware(parameters: Array<any>, useCache = true) {
-    return (req: Request, res: Response, next: NextFunction) => new ParameterStoreService(parameters, useCache)
+    return (req: Request, res: Response, next: NextFunction): Promise<void> => new ParameterStoreService(parameters, useCache)
       .load()
       .then(() => next())
       .catch((error) => {

@@ -31,7 +31,7 @@ export default class LogService {
     this.logger = logger;
   }
 
-  log(level: string, message: string, ...data: Array<any>) {
+  log(level: string, message: string, ...data: Array<any>): void {
     const log = {
       ...this.context,
       level,
@@ -41,31 +41,31 @@ export default class LogService {
     this.logger.log(JSON.stringify(log));
   }
 
-  verbose(message: string, ...data: Array<any>) {
+  verbose(message: string, ...data: Array<any>): void {
     if (this.logLevels.includes('VERBOSE')) {
       this.log('verbose', message, ...data);
     }
   }
 
-  debug(message: string, ...data: Array<any>) {
+  debug(message: string, ...data: Array<any>): void {
     if (this.logLevels.includes('DEBUG')) {
       this.log('debug', message, ...data);
     }
   }
 
-  info(message: string, ...data: Array<any>) {
+  info(message: string, ...data: Array<any>): void {
     this.log('info', message, ...data);
   }
 
-  warn(message: string, ...data: Array<any>) {
+  warn(message: string, ...data: Array<any>): void {
     this.log('warn', message, ...data);
   }
 
-  error(message: string, ...data: Array<any>) {
+  error(message: string, ...data: Array<any>): void {
     this.log('error', message, ...data);
   }
 
-  fatal(message: string, ...data: Array<any>) {
+  fatal(message: string, ...data: Array<any>): void {
     this.log('fatal', message, ...data);
   }
 
@@ -111,7 +111,7 @@ export default class LogService {
   }
 
   static middleware(header = 'x-correlation-id', query = 'cid') {
-    return (req: Request, res: Response, next: NextFunction) => {
+    return (req: Request, res: Response, next: NextFunction): void => {
       const headerKey = header;
       const queryKey = query;
 
@@ -143,7 +143,7 @@ export default class LogService {
   }
 
   static errorMiddleware() {
-    return (error: Error, req: Request, res: Response, next: NextFunction) => {
+    return (error: Error, req: Request, res: Response, next: NextFunction): void => {
       const { log = new LogService(req.cid) } = req;
 
       log.error('Request processing error', error, {

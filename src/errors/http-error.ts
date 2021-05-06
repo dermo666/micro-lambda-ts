@@ -73,7 +73,7 @@ export default class HttpError extends Error {
   }
 
   static middleware() {
-    return (req: Request, res: Response, next: NextFunction) => {
+    return (req: Request, res: Response, next: NextFunction): void => {
       if (!res.jsonError) {
         res.jsonError = (error) => jsonError(res, error);
       }
