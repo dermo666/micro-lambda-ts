@@ -1,7 +1,9 @@
 /* istanbul ignore file */
 import uuidV4 from 'uuid/v4';
 import { HTTPError } from 'got/dist/source';
-import { NextFunction, Request, Response } from 'express';
+import {
+  NextFunction, Request, Response, RequestHandler,
+} from 'express';
 
 export default class LogService {
   private cid: string;
@@ -110,7 +112,7 @@ export default class LogService {
     });
   }
 
-  static middleware(header = 'x-correlation-id', query = 'cid') {
+  static middleware(header = 'x-correlation-id', query = 'cid'): RequestHandler {
     return (req: Request, res: Response, next: NextFunction): void => {
       const headerKey = header;
       const queryKey = query;

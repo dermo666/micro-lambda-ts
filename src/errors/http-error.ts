@@ -1,6 +1,8 @@
 /* istanbul ignore file */
 import { STATUS_CODES } from 'http';
-import { NextFunction, Request, Response } from 'express';
+import {
+  NextFunction, Request, Response, RequestHandler,
+} from 'express';
 
 export function jsonError(res: Response, error: any = {}): void {
   const { name = '', message = STATUS_CODES[500] } = error;
@@ -72,7 +74,7 @@ export default class HttpError extends Error {
     }
   }
 
-  static middleware() {
+  static middleware(): RequestHandler {
     return (req: Request, res: Response, next: NextFunction): void => {
       if (!res.jsonError) {
         res.jsonError = (error) => jsonError(res, error);
