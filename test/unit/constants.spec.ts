@@ -12,14 +12,4 @@ describe('configs/parameters', () => {
     process.env.SERVICE_NAME = 'SERVICE_NAME';
     expect(Constants.SERVICE_NAME).to.equal(process.env.SERVICE_NAME);
   });
-
-  it('should export store parameters', () => {
-    process.env.SSM_API_KEY = 'SSM_API_KEY';
-    process.env.SSM_API_URL = 'SSM_API_KEY';
-
-    expect(Constants.parameters).to.eql([
-      { name: 'API_KEY', path: process.env.SSM_API_KEY },
-      { name: 'API_URL', path: process.env.SSM_API_URL },
-    ]);
-  });
 });

@@ -23,7 +23,7 @@ export default class Api {
   }
 
   attachParameterStore(): Api {
-    this.express.use(ParameterStoreService.middleware(Constants.parameters));
+    this.express.use(ParameterStoreService.middleware(process.env as any));
     return this;
   }
 

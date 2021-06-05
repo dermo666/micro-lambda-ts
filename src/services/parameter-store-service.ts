@@ -1,41 +1,42 @@
 /* istanbul ignore file */
 import { SSM } from 'aws-sdk';
-import { NextFunction, Request, Response } from 'express';
+import {
+  NextFunction, Request, Response, RequestHandler,
+} from 'express';
 
-const cache = {};
+export interface ProcessEnv {
+  [key: string]: string;
+}
 
 export default class ParameterStoreService {
+  static cache: ProcessEnv = {};
+
   constructor(
-    private parameters: Array<any>,
+    private parameters: ProcessEnv,
     private useCache = true,
     private ssm = new SSM(),
-  ) {}
+  ) { }
 
-  async load(parameters = this.parameters): Promise<void> {
-    if (!parameters) {
-      throw new Error('Parameters is required');
-    }
+  /**
+   * Filter out SSM params
+   * @param env ProcessEnv
+   * @returns ProcessEnv
+   */
+  static findSSMParams(env: ProcessEnv): ProcessEnv {
+    const ssmParams: ProcessEnv = {};
 
-    const tasks = parameters.map(async ({ name, path }) => {
-      // Look in the cache first if using cache is specified (true by default)
-      if (this.useCache && cache[name]) {
-        process.env[name] = cache[name];
-      } else {
-        // Go directly to the parameter store
-        const { Parameter: { Value } = {} } = await this.ssm.getParameter({
-          Name: path,
-          WithDecryption: true,
-        }).promise();
-        cache[name] = Value;
-        process.env[name] = Value;
+    Object.keys(env).forEach((name) => {
+      if (name.startsWith('SSM_')) {
+        ssmParams[name] = env[name];
       }
     });
 
-    await Promise.all(tasks);
+    return ssmParams;
   }
 
-  static middleware(parameters: Array<any>, useCache = true) {
-    return (req: Request, res: Response, next: NextFunction): Promise<void> => new ParameterStoreService(parameters, useCache)
+  static middleware(parameters: ProcessEnv, useCache = true): RequestHandler {
+    const ssmParams = ParameterStoreService.findSSMParams(parameters);
+    return (req: Request, res: Response, next: NextFunction): Promise<void> => new ParameterStoreService(ssmParams, useCache)
       .load()
       .then(() => next())
       .catch((error) => {
@@ -49,5 +50,31 @@ export default class ParameterStoreService {
           }],
         });
       });
+  }
+
+  async load(): Promise<void> {
+    if (!this.parameters) {
+      throw new Error('Parameters is required');
+    }
+
+    const tasks = Object.entries(this.parameters).map(async ([ssmName, path]) => {
+      const name = ssmName.substr(4);
+
+      // Look in the cache first if using cache is specified (true by default)
+      if (this.useCache && ParameterStoreService.cache[name]) {
+        process.env[name] = ParameterStoreService.cache[name];
+      } else {
+        // Go directly to the parameter store
+        const { Parameter: { Value = '' } = {} } = await this.ssm.getParameter({
+          Name: path,
+          WithDecryption: true,
+        }).promise();
+
+        ParameterStoreService.cache[name] = Value;
+        process.env[name] = Value;
+      }
+    });
+
+    await Promise.all(tasks);
   }
 }

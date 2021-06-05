@@ -3,8 +3,7 @@ import chaiAsPromised from 'chai-as-promised';
 import got from 'got';
 import { SSM, SharedIniFileCredentials } from 'aws-sdk';
 
-import Constants from '../../src/configs/constants';
-import ParameterStoreService from '../../src/services/parameter-store-service';
+import ParameterStoreService, { ProcessEnv } from '../../src/services/parameter-store-service';
 
 chai.use(chaiAsPromised);
 
@@ -14,32 +13,34 @@ describe('API integration', () => {
     const { AWS_STAGE = 'dev', AWS_PROFILE = 'default', AWS_REGION = 'ap-southeast-2' } = process.env;
 
     // Setup parameter store paths
-    process.env.SSM_API_KEY = `/${AWS_STAGE}/api/api_key`;
-    process.env.SSM_API_URL = `/${AWS_STAGE}/api/api_url`;
+    const env = <ProcessEnv>{
+      SSM_API_KEY: `/${AWS_STAGE}/api/api_key`,
+      SSM_API_URL: `/${AWS_STAGE}/api/api_url`,
+    }
 
     // Load parameter store values
-    await new ParameterStoreService({
-      parameters: Constants.parameters,
-      useCache: false,
-      ssm: new SSM({
+    await new ParameterStoreService(
+      env,
+      false,
+      new SSM({
         region: AWS_REGION,
         credentials: new SharedIniFileCredentials({ profile: AWS_PROFILE }),
       }),
-    }).load();
+    ).load();
   });
 
   it('Unauthorized requests should return 403 response', () =>
     expect(
       got({
-        url: `${process.env[Constants.apiUrl.name]}/123?message=abc`,
+        url: `${process.env.API_URL}/123?message=abc`,
         responseType: 'json',
       }),
     ).to.be.rejectedWith('Forbidden'));
 
   it('Valid requests should return correct response', async () => {
     const { body } = await got({
-      url: `${process.env[Constants.apiUrl.name]}/123?message=abc`,
-      headers: { 'x-api-key': process.env[Constants.apiKey.name] },
+      url: `${process.env.API_URL}/123?message=abc`,
+      headers: { 'x-api-key': process.env.API_KEY },
       responseType: 'json',
     })
     expect(body).to.eql({
