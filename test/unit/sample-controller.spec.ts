@@ -1,6 +1,6 @@
 import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
-import sinon from 'sinon';
+// import sinon from 'sinon';
 import sinonChai from 'sinon-chai';
 import express, { Request, Response } from 'express';
 import request from 'supertest';
@@ -17,7 +17,7 @@ describe('controllers/sample-controller', () => {
   const createApp = () => express()
     .use((req: Request, res: Response, next) => {
       req.log = new LogService();
-      res.jsonError = error => jsonError(res, error);
+      res.jsonError = (error) => jsonError(res, error);
       next();
     })
     .use(controller.middleware());

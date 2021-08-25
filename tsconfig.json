@@ -10,15 +10,12 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "outDir": ".build",
-    "rootDir": "./src",
     "resolveJsonModule": true,
     "moduleResolution": "node",
     "sourceMap": true,
+    "allowJs": true,
   },
   "ts-node": {
     "files": true
-  },
-  "exclude": [
-    "test"
-  ]
+  }
 }

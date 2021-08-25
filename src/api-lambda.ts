@@ -1,7 +1,7 @@
 /* istanbul ignore file */
 import { APIGatewayProxyEvent, Context } from 'aws-lambda';
 import awsServerlessExpress from 'aws-serverless-express';
-import { Server } from 'node:http';
+import { Server } from 'http';
 
 import Api from './services/api';
 

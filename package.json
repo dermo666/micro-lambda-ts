@@ -4,7 +4,7 @@
   "description": "Microservice template in Typescript",
   "main": "index.ts",
   "scripts": {
-    "build:lint": "eslint src/ --ext .ts",
+    "build:lint": "eslint src/ test/ --ext .ts",
     "build:clean": "rimraf dist/",
     "build:compile": "serverless webpack",
     "build": "npm run build:lint && npm run build:clean && npm run build:compile",
@@ -12,7 +12,8 @@
     "deploy": "serverless deploy",
     "deploy:tst": "npm run deploy -- --aws-profile default --stage tst",
     "start": "serverless offline start --stage tst",
-    "test:unit": "nyc env TS_NODE_PROJECT=\"tsconfig.test.json\" mocha -r ts-node/register 'test/unit/**/*.ts'",
+    "test:unit": "nyc mocha -r ts-node/register 'test/unit/**/*.ts'",
+    "test:integration": "mocha -r ts-node/register  -r dotenv/config 'test/integration/**/*.ts' --timeout 32000",
     "test": "npm run build:lint && npm run test:unit"
   },
   "author": "",
@@ -43,6 +44,8 @@
     "@types/sinon": "^10.0.0",
     "@types/sinon-chai": "^3.2.5",
     "@types/supertest": "^2.0.11",
+    "@types/swagger-jsdoc": "^6.0.1",
+    "@types/swagger-ui-dist": "^3.30.1",
     "@types/uuid": "^8.3.1",
     "@typescript-eslint/eslint-plugin": "^4.17.0",
     "@typescript-eslint/parser": "^4.17.0",

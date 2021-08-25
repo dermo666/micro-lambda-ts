@@ -8,7 +8,6 @@ import ParameterStoreService, { ProcessEnv } from '../../src/services/parameter-
 chai.use(chaiAsPromised);
 
 describe('API integration', () => {
-
   before(async () => {
     const { AWS_STAGE = 'dev', AWS_PROFILE = 'default', AWS_REGION = 'ap-southeast-2' } = process.env;
 
@@ -16,7 +15,7 @@ describe('API integration', () => {
     const env = <ProcessEnv>{
       SSM_API_KEY: `/${AWS_STAGE}/api/api_key`,
       SSM_API_URL: `/${AWS_STAGE}/api/api_url`,
-    }
+    };
 
     // Load parameter store values
     await new ParameterStoreService(
@@ -42,13 +41,14 @@ describe('API integration', () => {
       url: `${process.env.API_URL}/123?message=abc`,
       headers: { 'x-api-key': process.env.API_KEY },
       responseType: 'json',
-    })
+    });
+
     expect(body).to.eql({
       data: {
         id: '123',
         type: 'response',
         attributes: { message: 'abc' },
       },
-    })
+    });
   });
 });
