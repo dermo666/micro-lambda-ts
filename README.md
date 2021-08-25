@@ -3,12 +3,13 @@
 This is a highly opinionated RESTful API microservice template for AWS Lambda written in Typescript.
 
 ## Core technologies
-1. Serverless framework
-2. Serverless express app
-3. Serverless webpack
-4. Swagger API Documentation
-5. JSON API specs
-6. Dot ENV
+1. Serverless Framework
+2. Serverless Express App
+3. Serverless Webpack
+4. Mocha Unit Tests
+5. Swagger API Documentation
+6. JSON API specs
+7. Dot ENV
 
 ## Core infrastructure
 1. AWS Lambda
@@ -20,7 +21,7 @@ This is a highly opinionated RESTful API microservice template for AWS Lambda wr
 `npm install`
 
 ## Run
-1. `npm start`
+`npm start`
 
 ## Test
 1. `npm run test` for lint + unit tests
@@ -31,13 +32,9 @@ This is a highly opinionated RESTful API microservice template for AWS Lambda wr
 
 ## Deploy
 `npm run deploy`
+or for tst deployment only
+`npm run deploy:tst`
 
 ### Integration testing
 Configure your `.env` file with the deployed resources
-1. `npm run test:integration`  for integration tests
-
-## TODOs
-- [ ] Improve the SSM handling - add automatic env injector 
-- [ ] Fix Swagger Doc
-- [ ] Fix Typescript linter errors and warnings
-- [ ] Improve documentation
+`npm run test:integration`  for integration tests
