@@ -1,5 +1,5 @@
 /* istanbul ignore file */
-import uuidV4 from 'uuid/v4';
+import { v4 as uuidV4 } from 'uuid';
 import { HTTPError } from 'got/dist/source';
 import {
   NextFunction, Request, Response, RequestHandler,
@@ -117,18 +117,20 @@ export default class LogService {
       const headerKey = header;
       const queryKey = query;
 
-      let cid;
+      let cid: string = '';
 
       if (req.get(headerKey)) {
         // Try to read the cid from the header
-        cid = req.get(headerKey);
+        cid = <string> req.get(headerKey);
       } else if (req.query[queryKey]) {
         // Else try to read the cid from the query string
-        cid = req.query[queryKey];
+        cid = <string> req.query[queryKey];
       }
 
       // No cid found, generate a new one
-      if (!cid) cid = uuidV4();
+      if (!cid) {
+        cid = uuidV4();
+      }
 
       // Set the cid into the request context
       req.cid = cid;
