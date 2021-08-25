@@ -41,7 +41,7 @@ const swaggerSpec = {
   },
   apis: ['src/**/*.js', 'src/**/*.docs.yml'],
 };
-const swaggerDoc = swaggerJSDoc(swaggerSpec);
+const swaggerDoc: any = swaggerJSDoc(swaggerSpec);
 const apiDocs = '/docs/api-docs.json';
 
 // Serve the swagger json definition
