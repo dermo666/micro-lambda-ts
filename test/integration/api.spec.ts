@@ -1,7 +1,8 @@
 import chai, { expect } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import got from 'got';
-import { SSM, SharedIniFileCredentials } from 'aws-sdk';
+import { SSMClient } from '@aws-sdk/client-ssm';
+import { fromIni } from '@aws-sdk/credential-providers';
 
 import ParameterStoreService, { ProcessEnv } from '../../src/services/parameter-store-service';
 
@@ -21,9 +22,9 @@ describe('API integration', () => {
     await new ParameterStoreService(
       env,
       false,
-      new SSM({
+      new SSMClient({
         region: AWS_REGION,
-        credentials: new SharedIniFileCredentials({ profile: AWS_PROFILE }),
+        credentials: fromIni({ profile: AWS_PROFILE }),
       }),
     ).load();
   });

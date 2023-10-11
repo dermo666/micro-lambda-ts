@@ -1,5 +1,5 @@
 /* istanbul ignore file */
-import { SSM } from 'aws-sdk';
+import { SSMClient, GetParameterCommand } from '@aws-sdk/client-ssm';
 import {
   NextFunction, Request, Response, RequestHandler,
 } from 'express';
@@ -14,7 +14,7 @@ export default class ParameterStoreService {
   constructor(
     private parameters: ProcessEnv,
     private useCache = true,
-    private ssm = new SSM(),
+    private ssmClient = new SSMClient(),
   ) { }
 
   /**
@@ -65,10 +65,12 @@ export default class ParameterStoreService {
         process.env[name] = ParameterStoreService.cache[name];
       } else {
         // Go directly to the parameter store
-        const { Parameter: { Value = '' } = {} } = await this.ssm.getParameter({
+        const command = new GetParameterCommand({
           Name: path,
           WithDecryption: true,
-        }).promise();
+        });
+
+        const { Parameter: { Value = '' } = {} } = await this.ssmClient.send(command);
 
         ParameterStoreService.cache[name] = Value;
         process.env[name] = Value;

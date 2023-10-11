@@ -1,27 +1,24 @@
 service: ts-micro-lambda
 
 plugins:
-  - serverless-webpack
+  - serverless-esbuild
   - serverless-offline
-  - serverless-pseudo-parameters
   - serverless-plugin-log-retention
   - serverless-domain-manager
 
-frameworkVersion: '2'
-variablesResolutionMode: 20210326
 useDotenv: true
 
 custom:
   name: ${opt:service-name, env:SERVICE_NAME, 'ts-micro-lambda'}
   defaultRegion: ap-southeast-2
-  stage: ${opt:stage, env:STAGE, 'tst'}
+  stage: ${opt:stage, env:STAGE, 'dev'}
   stagedName: ${self:custom.name}-${self:custom.stage}
   basePath: ${opt:base-path, env:BASE_PATH, 'ts-micro-lambda'}
   domainName: ${opt:prefix, ''}${self:custom.domainNameMap.${self:custom.stage}}
   domainNameMap:
-    tst: control-api.test-your-domain.com
-    stg: control-api.staging-your-domain.com
-    prd: control-api.-your-domain.com
+    dev: api.dev-your-domain.com
+    stg: api.staging-your-domain.com
+    prd: api.your-domain.com
   domain: ${opt:service-host, env:SERVICE_HOST, self:custom.domainName}
   customDomain:
     domainName: ${self:custom.domain}
@@ -30,11 +27,11 @@ custom:
     createRoute53Record: true
   region: ${opt:region, env:AWS_REGION, 'ap-southeast-2'}
   # profile: ${opt:profile, env:AWS_PROFILE, self:custom.stage}
-  webpack:
-    includeModules:
-      forceExclude: [aws-sdk]
-    webpackConfig: 'webpack.config.js'
-    packager: 'npm'
+  esbuild:
+    bundle: true
+    minify: false
+    exclude: ['@aws-sdk/*']
+    concurrency: 3
   logRetentionInDays: 60
   functions:
     # API lambda function
@@ -55,15 +52,15 @@ custom:
                   message: false
       environment:
         # Set the parameter store values
-        SSM_API_URL: /${self:custom.stage}/api/api-url
-        SSM_API_KEY: /${self:custom.stage}/api/api-key
+        # SSM_API_URL: /${self:custom.stage}/api/api-url
+        # SSM_API_KEY: /${self:custom.stage}/api/api-key
     api-docs: &api-docs
       handler: src/api-docs-lambda.handler
       role: ApiDocsExecutionRole
       events:
         - http: GET /docs
         - http: GET /docs/{proxy+}
-    tst:
+    dev:
       api: *api
       api-docs: *api-docs
     stg:
@@ -78,12 +75,11 @@ package:
 
 provider:
   name: aws
-  runtime: nodejs14.x
+  runtime: nodejs18.x
   region: ${self:custom.region}
   stage: ${self:custom.stage}
   # profile: ${self:custom.profile}
   stackName: ${self:custom.stagedName}
-  lambdaHashingVersion: 20201221
   timeout: 30
   memorySize: 256
   deploymentBucket:

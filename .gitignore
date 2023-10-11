@@ -64,8 +64,8 @@ typings/
 .idea
 
 # Build output
-.serverless/
-.webpack/
-dist/
-lib/
+.serverless
+.esbuild
+dist
+lib
 .env

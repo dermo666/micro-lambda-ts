@@ -36,7 +36,7 @@ export default class SampleController {
       });
     } catch (error) {
       req.log.error('Error', error, { id, message });
-      res.jsonError(error);
+      res.jsonError(res, error);
     }
   }
 }

@@ -163,7 +163,7 @@ export default class LogService {
           errors: [
             {
               status: 400,
-              title: `Invalid JSON - ${error['messsage']}`, // eslint-disable-line @typescript-eslint/dot-notation
+              title: `Invalid JSON - ${error['message']}`, // eslint-disable-line @typescript-eslint/dot-notation
             },
           ],
         });
