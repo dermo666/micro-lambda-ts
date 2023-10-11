@@ -5,7 +5,7 @@ This is a highly opinionated RESTful API microservice template for AWS Lambda wr
 ## Core technologies
 1. Serverless Framework
 2. Serverless Express App
-3. Serverless Webpack
+3. Serverless Esbuild
 4. Mocha Unit Tests
 5. Swagger API Documentation
 6. JSON API specs
